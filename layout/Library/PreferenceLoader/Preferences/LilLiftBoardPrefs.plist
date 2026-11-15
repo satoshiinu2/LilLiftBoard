@@ -1,0 +1,10 @@
+{
+	entry = {
+		bundle = LilLiftBoardPrefs;
+		cell = PSLinkCell;
+		detail = "LLBPrefsRootListController";
+		icon = "icon.png";
+		isController = YES;
+		label = LilLiftBoard;
+	};
+}
