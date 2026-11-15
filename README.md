@@ -50,6 +50,15 @@ preferenceloader.
   clang-20/lld shims and a self-built ldid live under `~/workspace/theos`
   and `~/workspace/bin`.
 
+## Development
+
+This tweak was developed with the help of an AI assistant (Muse by Meta),
+under satoshiinu's direction. The problem definition, desired behavior,
+name, and the final testing on a real device are the author's; the
+research, implementation, and packaging were carried out in collaboration
+with the AI. The classic implementations consulted along the way are
+credited in [RESEARCH.md](RESEARCH.md).
+
 ## Status
 
 **Tested and working on a real device (iPhone 8, iOS 16) as of
