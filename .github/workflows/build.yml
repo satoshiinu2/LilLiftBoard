@@ -1,0 +1,38 @@
+name: Build LilLiftBoard
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Theos
+        run: |
+          brew install ldid dpkg
+          git clone --recursive https://github.com/theos/theos.git "$RUNNER_TEMP/theos"
+          echo "THEOS=$RUNNER_TEMP/theos" >> "$GITHUB_ENV"
+
+      - name: Install iOS SDK
+        run: |
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git "$RUNNER_TEMP/sdks"
+          cd "$RUNNER_TEMP/sdks" && git sparse-checkout set iPhoneOS16.5.sdk
+          cp -r iPhoneOS16.5.sdk "$THEOS/sdks/"
+
+      - name: Build rootless package
+        run: |
+          make clean
+          make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
+
+      - name: Build rootful package
+        run: |
+          make clean
+          make package FINALPACKAGE=1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lilliftboard-debs
+          path: packages/*.deb
