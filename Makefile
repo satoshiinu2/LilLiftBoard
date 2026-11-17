@@ -4,8 +4,8 @@ ARCHS = arm64
 include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = LilLiftBoard
-LilLiftBoard_FILES = Sources/Tweak.xm Sources/Prefs.m
-LilLiftBoard_CFLAGS = -fobjc-arc -ISources
+LilLiftBoard_FILES = Sources/Tweak.xm Sources/Prefs.m Sources/DockBar.m Sources/Actions.m Shared/LLBActionCatalog.m Shared/LLBDockStore.m
+LilLiftBoard_CFLAGS = -fobjc-arc -ISources -IShared
 LilLiftBoard_FRAMEWORKS = UIKit CoreGraphics
 LilLiftBoard_USE_MODULES = 0
 

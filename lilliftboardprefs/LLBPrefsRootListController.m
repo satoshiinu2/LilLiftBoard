@@ -1,4 +1,5 @@
 #import "LLBPrefsRootListController.h"
+#import "LLBDockButtonsController.h"
 #include <spawn.h>
 
 @implementation LLBPrefsRootListController
@@ -8,6 +9,11 @@
         _specifiers = [self loadSpecifiersFromPlistName:@"Root" target:self];
     }
     return _specifiers;
+}
+
+- (void)openDockButtons {
+    LLBDockButtonsController *controller = [[LLBDockButtonsController alloc] init];
+    [self.navigationController pushViewController:controller animated:YES];
 }
 
 - (void)openGitHub {

@@ -48,6 +48,110 @@
 		</dict>
 		<dict>
 			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Dock Buttons</string>
+			<key>footerText</key>
+			<string>Buttons in the space below the keyboard created by the lift. They need a lift of at least 20 pt to fit. Long-press a button to open its popup.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.satoshiinu.lilliftboard</string>
+			<key>key</key>
+			<string>dockButtonsEnabled</string>
+			<key>label</key>
+			<string>Dock Buttons</string>
+			<key>PostNotification</key>
+			<string>com.satoshiinu.lilliftboard/prefschanged</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkCell</string>
+			<key>action</key>
+			<string>openDockButtons</string>
+			<key>label</key>
+			<string>Buttons</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>default</key>
+			<real>56</real>
+			<key>defaults</key>
+			<string>com.satoshiinu.lilliftboard</string>
+			<key>key</key>
+			<string>dockButtonSize</string>
+			<key>label</key>
+			<string>Button Size (pt)</string>
+			<key>min</key>
+			<real>20</real>
+			<key>max</key>
+			<real>60</real>
+			<key>showValue</key>
+			<true/>
+			<key>PostNotification</key>
+			<string>com.satoshiinu.lilliftboard/prefschanged</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>default</key>
+			<real>0</real>
+			<key>defaults</key>
+			<string>com.satoshiinu.lilliftboard</string>
+			<key>key</key>
+			<string>dockButtonSpacing</string>
+			<key>label</key>
+			<string>Button Spacing (pt)</string>
+			<key>min</key>
+			<real>0</real>
+			<key>max</key>
+			<real>24</real>
+			<key>showValue</key>
+			<true/>
+			<key>PostNotification</key>
+			<string>com.satoshiinu.lilliftboard/prefschanged</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>defaults</key>
+			<string>com.satoshiinu.lilliftboard</string>
+			<key>key</key>
+			<string>dockBarMargin</string>
+			<key>default</key>
+			<real>20</real>
+			<key>label</key>
+			<string>Side Margin (pt)</string>
+			<key>min</key>
+			<real>0</real>
+			<key>max</key>
+			<real>40</real>
+			<key>showValue</key>
+			<true/>
+			<key>PostNotification</key>
+			<string>com.satoshiinu.lilliftboard/prefschanged</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Test</string>
+			<key>footerText</key>
+			<string>Scratch field for trying the dock buttons (copy, paste, cursor movement) without leaving Settings. The text is not saved.</string>
+		</dict>
+		<dict>
+			<key>cellClass</key>
+			<string>LLBTestTextCell</string>
+			<key>height</key>
+			<real>106</real>
+		</dict>
+		<dict>
+			<key>cell</key>
 			<string>PSButtonCell</string>
 			<key>action</key>
 			<string>respring</string>
