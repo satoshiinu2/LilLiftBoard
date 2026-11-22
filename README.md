@@ -70,7 +70,9 @@ Settings → LilLiftBoard → **Dock Buttons** (on/off) → **Buttons**:
 
 The Dock Buttons settings also have sliders for the button size
 (20–60 pt), the spacing between buttons (0–24 pt) and the side margin
-insetting the groups from the strip's edges (0–40 pt, default 20 pt).
+insetting the groups from the strip's edges (0–40 pt, default 20 pt),
+plus an Icon Weight picker for the SF Symbol weight of the button
+icons (Ultralight–Black, default Light).
 
 Changes are saved to the `dockButtons` / `dockButtonsCenter` /
 `dockButtonsRight` preferences and picked up by the tweak immediately
@@ -83,8 +85,8 @@ Settings; its contents are not saved.
 
 ## Packages
 
-- `packages/com.satoshiinu.lilliftboard_1.1.0_iphoneos-arm64.deb` — rootless (Dopamine / palera1n rootless, `/var/jb`)
-- `packages/com.satoshiinu.lilliftboard_1.1.0_iphoneos-arm.deb` — rootful (palera1n rootful etc.)
+- `packages/com.satoshiinu.lilliftboard_1.2.0_iphoneos-arm64.deb` — rootless (Dopamine / palera1n rootless, `/var/jb`)
+- `packages/com.satoshiinu.lilliftboard_1.2.0_iphoneos-arm.deb` — rootful (palera1n rootful etc.)
 
 Target: iOS 15–16, arm64. Depends on mobilesubstrate (ElleKit) and
 preferenceloader.
@@ -122,4 +124,5 @@ entry).
 
 The dock buttons added in 1.1.0 were confirmed working on the same
 device on 2026-11-16 (buttons render in the lifted strip and copy /
-paste work in the settings Test field).
+paste work in the settings Test field). The Icon Weight setting added
+in 1.2.0 was confirmed on the same device on 2026-11-23.

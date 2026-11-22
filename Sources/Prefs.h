@@ -19,6 +19,9 @@ extern CGFloat LLBDockButtonSize;
 extern CGFloat LLBDockButtonSpacing;
 // Horizontal inset of the button groups from the bar's left / right edges.
 extern CGFloat LLBDockBarMargin;
+// SF Symbol weight of the button icons, as an index into the ordered
+// weight list (0 = Ultralight … 8 = Black, default 2 = Light).
+extern NSInteger LLBDockSymbolWeightIndex;
 
 void LLBReloadPrefs(void);
 void LLBStartObservingPrefs(void);

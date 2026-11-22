@@ -138,6 +138,16 @@
 		</dict>
 		<dict>
 			<key>cell</key>
+			<string>PSLinkCell</string>
+			<key>action</key>
+			<string>selectIconWeight</string>
+			<key>get</key>
+			<string>iconWeightTitle:</string>
+			<key>label</key>
+			<string>Icon Weight</string>
+		</dict>
+		<dict>
+			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>label</key>
 			<string>Test</string>

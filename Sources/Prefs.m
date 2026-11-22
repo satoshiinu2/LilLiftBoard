@@ -27,6 +27,7 @@ NSArray<NSDictionary *> *LLBDockButtonsRight = nil;
 CGFloat LLBDockButtonSize = LLBDefaultDockButtonSize;
 CGFloat LLBDockButtonSpacing = LLBDefaultDockButtonSpacing;
 CGFloat LLBDockBarMargin = LLBDefaultDockBarMargin;
+NSInteger LLBDockSymbolWeightIndex = 2;
 
 void LLBReloadPrefs(void) {
     NSDictionary *defaults = LLBLoadPrefsDictionary();
@@ -52,6 +53,10 @@ void LLBReloadPrefs(void) {
     NSNumber *barMargin = [defaults objectForKey:@"dockBarMargin"];
     CGFloat margin = barMargin ? (CGFloat)barMargin.doubleValue : LLBDefaultDockBarMargin;
     LLBDockBarMargin = MIN(MAX(margin, 0.0), LLBMaxDockBarMargin);
+
+    NSNumber *symbolWeight = [defaults objectForKey:@"dockSymbolWeight"];
+    NSInteger weightIndex = symbolWeight ? symbolWeight.integerValue : 2;
+    LLBDockSymbolWeightIndex = MIN(MAX(weightIndex, 0), 8);
 
     LLBDockButtons = [LLBLoadDockButtons() copy];
     LLBDockButtonsCenter = [LLBLoadCenterDockButtons() copy];

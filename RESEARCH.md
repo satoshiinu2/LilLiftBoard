@@ -159,3 +159,11 @@ drag, deleting is swipe), and the button tint now resolves against
 the keyboard layout view's traits — the key plane carries the
 keyboard appearance, while the dock/host views keep the host's
 traits, which mismatched in Spotlight.
+
+Post-1.1.0: an Icon Weight setting (SF Symbol weight, Ultralight–
+Black, default Light) first used a PSLinkListCell /
+PSListItemsController specifier with NSNumber values, which crashed
+Preferences on tap. It was replaced with a PSLinkCell whose action
+presents an action sheet from the root list controller (the same
+action pattern the Buttons row already used), storing the picked
+index and posting the prefs-changed notification directly.
