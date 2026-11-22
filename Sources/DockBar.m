@@ -185,7 +185,7 @@ static const CGFloat LLBMinimumDockHeight = 24.0;
     [dockView bringSubviewToFront:self];
     [self hideOtherHostBars];
 
-    NSString *signature = [NSString stringWithFormat:@"%@|%@|%@|%@|%.1f|%.1f|%.1f", LLBDockButtons, LLBDockButtonsCenter, LLBDockButtonsRight, NSStringFromCGRect(frame), LLBDockButtonSize, LLBDockButtonSpacing, LLBDockBarMargin];
+    NSString *signature = [NSString stringWithFormat:@"%@|%@|%@|%@|%.1f|%.1f|%.1f|%ld", LLBDockButtons, LLBDockButtonsCenter, LLBDockButtonsRight, NSStringFromCGRect(frame), LLBDockButtonSize, LLBDockButtonSpacing, LLBDockBarMargin, (long)LLBDockSymbolWeightIndex];
     if (![signature isEqualToString:self.syncSignature]) {
         self.syncSignature = signature;
         [self rebuildButtons];
@@ -229,7 +229,7 @@ static const CGFloat LLBMinimumDockHeight = 24.0;
     self.hidden = NO;
     [hostView bringSubviewToFront:self];
 
-    NSString *signature = [NSString stringWithFormat:@"%@|%@|%@|%@|%.1f|%.1f|%.1f", LLBDockButtons, LLBDockButtonsCenter, LLBDockButtonsRight, NSStringFromCGRect(frame), LLBDockButtonSize, LLBDockButtonSpacing, LLBDockBarMargin];
+    NSString *signature = [NSString stringWithFormat:@"%@|%@|%@|%@|%.1f|%.1f|%.1f|%ld", LLBDockButtons, LLBDockButtonsCenter, LLBDockButtonsRight, NSStringFromCGRect(frame), LLBDockButtonSize, LLBDockButtonSpacing, LLBDockBarMargin, (long)LLBDockSymbolWeightIndex];
     if (![signature isEqualToString:self.syncSignature]) {
         self.syncSignature = signature;
         [self rebuildButtons];
@@ -303,8 +303,14 @@ static const CGFloat LLBMinimumDockHeight = 24.0;
     if (symbol) {
         // Explicit point size: the default symbol configuration renders
         // at the surrounding font size, small enough to overlook in the
-        // strip even when the button is there.
-        UIImageSymbolConfiguration *configuration = [UIImageSymbolConfiguration configurationWithPointSize:20.0 weight:UIImageSymbolWeightMedium];
+        // strip even when the button is there. The weight is the
+        // Icon Weight setting (index into this ordered list).
+        static const UIImageSymbolWeight weights[] = {
+            UIImageSymbolWeightUltraLight, UIImageSymbolWeightThin, UIImageSymbolWeightLight,
+            UIImageSymbolWeightRegular, UIImageSymbolWeightMedium, UIImageSymbolWeightSemibold,
+            UIImageSymbolWeightBold, UIImageSymbolWeightHeavy, UIImageSymbolWeightBlack,
+        };
+        UIImageSymbolConfiguration *configuration = [UIImageSymbolConfiguration configurationWithPointSize:20.0 weight:weights[LLBDockSymbolWeightIndex]];
         image = [[UIImage systemImageNamed:symbol] imageWithConfiguration:configuration];
     }
     if (image) {
