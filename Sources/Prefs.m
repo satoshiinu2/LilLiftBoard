@@ -28,6 +28,7 @@ CGFloat LLBDockButtonSize = LLBDefaultDockButtonSize;
 CGFloat LLBDockButtonSpacing = LLBDefaultDockButtonSpacing;
 CGFloat LLBDockBarMargin = LLBDefaultDockBarMargin;
 NSInteger LLBDockSymbolWeightIndex = 2;
+BOOL LLBDockDragCursorEnabled = YES;
 
 void LLBReloadPrefs(void) {
     NSDictionary *defaults = LLBLoadPrefsDictionary();
@@ -57,6 +58,9 @@ void LLBReloadPrefs(void) {
     NSNumber *symbolWeight = [defaults objectForKey:@"dockSymbolWeight"];
     NSInteger weightIndex = symbolWeight ? symbolWeight.integerValue : 2;
     LLBDockSymbolWeightIndex = MIN(MAX(weightIndex, 0), 8);
+
+    NSNumber *dragCursor = [defaults objectForKey:@"dockDragCursor"];
+    LLBDockDragCursorEnabled = dragCursor ? dragCursor.boolValue : YES;
 
     LLBDockButtons = [LLBLoadDockButtons() copy];
     LLBDockButtonsCenter = [LLBLoadCenterDockButtons() copy];

@@ -22,6 +22,8 @@ extern CGFloat LLBDockBarMargin;
 // SF Symbol weight of the button icons, as an index into the ordered
 // weight list (0 = Ultralight … 8 = Black, default 2 = Light).
 extern NSInteger LLBDockSymbolWeightIndex;
+// Horizontal drag on the bar scrubs the caret through the text.
+extern BOOL LLBDockDragCursorEnabled;
 
 void LLBReloadPrefs(void);
 void LLBStartObservingPrefs(void);

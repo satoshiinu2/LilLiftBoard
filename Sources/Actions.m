@@ -54,6 +54,37 @@ static void LLBMoveToLineBoundary(UIResponder<UITextInput> *input, BOOL toStart)
     input.selectedTextRange = [input textRangeFromPosition:target toPosition:target];
 }
 
+static UIResponder<UITextInput> *LLBScrubInput = nil;
+static UITextPosition *LLBScrubAnchor = nil;
+
+void LLBScrubBegin(void) {
+    @try {
+        LLBScrubInput = LLBTextInput();
+        LLBScrubAnchor = LLBScrubInput.selectedTextRange.start;
+    } @catch (NSException *exception) {
+        LLBScrubInput = nil;
+        LLBScrubAnchor = nil;
+    }
+}
+
+void LLBScrubMoveToOffset(NSInteger totalCharacters) {
+    @try {
+        if (!LLBScrubInput || !LLBScrubAnchor || LLBTextInput() != LLBScrubInput) {
+            return;
+        }
+        UITextPosition *target = [LLBScrubInput positionFromPosition:LLBScrubAnchor offset:totalCharacters];
+        if (target) {
+            LLBScrubInput.selectedTextRange = [LLBScrubInput textRangeFromPosition:target toPosition:target];
+        }
+    } @catch (NSException *exception) {
+    }
+}
+
+void LLBScrubEnd(void) {
+    LLBScrubInput = nil;
+    LLBScrubAnchor = nil;
+}
+
 static void LLBInsertText(UIKeyboardImpl *impl, UIResponder<UITextInput> *input, NSString *text) {
     if (text.length == 0) {
         return;
