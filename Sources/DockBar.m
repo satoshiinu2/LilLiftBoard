@@ -9,8 +9,58 @@ static const void *LLBHostBarKey = &LLBHostBarKey;
 static const void *LLBWindowBarKey = &LLBWindowBarKey;
 static const CGFloat LLBMinimumLiftForButtons = 20.0;
 static const CGFloat LLBMinimumDockHeight = 24.0;
+// Horizontal travel (pt) before a touch on the bar counts as a caret
+// drag instead of a tap. A press that has already fired (popup open)
+// is exempt: the scrub recognizer refuses to begin while a popup is
+// up, so the same finger can slide to a popup item instead.
+static const CGFloat LLBScrubThreshold = 8.0;
+static const CGFloat LLBScrubPointsPerCharacter = 10.0;
 
-@interface LLBDockBar ()
+// A pan recognizer that stays Possible — leaving taps and long
+// presses untouched — until the touch has travelled past the scrub
+// threshold horizontally. A vertically dominant travel fails it, so
+// only deliberate horizontal drags are claimed.
+@interface LLBScrubPanGestureRecognizer : UIPanGestureRecognizer
+@end
+
+@interface LLBScrubPanGestureRecognizer ()
+@property (nonatomic) CGPoint startLocation;
+@property (nonatomic) BOOL passedThreshold;
+@end
+
+@implementation LLBScrubPanGestureRecognizer
+
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    self.startLocation = [touches.anyObject locationInView:self.view];
+    self.passedThreshold = NO;
+    [super touchesBegan:touches withEvent:event];
+}
+
+- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    if (!self.passedThreshold && self.state == UIGestureRecognizerStatePossible) {
+        CGPoint location = [touches.anyObject locationInView:self.view];
+        CGFloat dx = location.x - self.startLocation.x;
+        CGFloat dy = location.y - self.startLocation.y;
+        if (fabs(dy) >= LLBScrubThreshold && fabs(dy) > fabs(dx)) {
+            self.state = UIGestureRecognizerStateFailed;
+            return;
+        }
+        if (fabs(dx) < LLBScrubThreshold) {
+            return;
+        }
+        self.passedThreshold = YES;
+    }
+    [super touchesMoved:touches withEvent:event];
+}
+
+- (void)reset {
+    self.passedThreshold = NO;
+    [super reset];
+}
+
+@end
+
+@interface LLBDockBar () <UIGestureRecognizerDelegate>
 @property (nonatomic) BOOL isHostBar;
 @property (nonatomic) NSUInteger leftButtonCount;
 @property (nonatomic) NSUInteger centerButtonCount;
@@ -18,9 +68,25 @@ static const CGFloat LLBMinimumDockHeight = 24.0;
 @property (nonatomic, strong) NSArray<NSDictionary *> *buttonConfigs;
 @property (nonatomic, strong) UIView *popupOverlay;
 @property (nonatomic, copy) NSArray<NSDictionary *> *popupItems;
+@property (nonatomic, strong) NSArray<UIButton *> *popupButtons;
+@property (nonatomic, weak) UIButton *popupAnchor;
+@property (nonatomic, weak) UIButton *popupHighlighted;
+@property (nonatomic) BOOL scrubbing;
+@property (nonatomic) NSInteger scrubCharacters;
 @end
 
 @implementation LLBDockBar
+
+- (instancetype)initWithFrame:(CGRect)frame {
+    self = [super initWithFrame:frame];
+    if (self) {
+        LLBScrubPanGestureRecognizer *scrub = [[LLBScrubPanGestureRecognizer alloc] initWithTarget:self action:@selector(handleScrubPan:)];
+        scrub.maximumNumberOfTouches = 1;
+        scrub.delegate = self;
+        [self addGestureRecognizer:scrub];
+    }
+    return self;
+}
 
 + (NSHashTable<LLBDockBar *> *)liveBars {
     static NSHashTable *bars = nil;
@@ -284,6 +350,11 @@ static const CGFloat LLBMinimumDockHeight = 24.0;
         NSArray *popup = config[@"popup"];
         UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleLongPress:)];
         longPress.minimumPressDuration = 0.35;
+        // Generous: an early sideways drag is claimed by the scrub
+        // recognizer (which cancels this one) well before the press
+        // fires, and after the popup opens the finger must be free to
+        // slide up to a popup item for flick selection.
+        longPress.allowableMovement = 300.0;
         longPress.enabled = [popup isKindOfClass:[NSArray class]] && popup.count > 0;
         [button addGestureRecognizer:longPress];
         UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTap:)];
@@ -397,18 +468,147 @@ static const CGFloat LLBMinimumDockHeight = 24.0;
     }
 }
 
+#pragma mark - Caret scrub drag
+
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)recognizer {
+    if ([recognizer isKindOfClass:[LLBScrubPanGestureRecognizer class]]) {
+        // While a popup is open the current touch belongs to flick
+        // selection, not to scrubbing.
+        return LLBDockDragCursorEnabled && !self.popupOverlay;
+    }
+    return YES;
+}
+
+// The drag's total horizontal travel maps to a character count: the
+// threshold is subtracted so the caret does not jump when the drag
+// engages, one character per LLBScrubPointsPerCharacter points, with
+// the travel past 120 pt counting double so long texts stay reachable
+// within the bar's width.
+- (NSInteger)scrubCharactersForTranslation:(CGFloat)translation {
+    CGFloat travel = fabs(translation) - LLBScrubThreshold;
+    if (travel <= 0) {
+        return 0;
+    }
+    CGFloat mapped = travel <= 120.0 ? travel : 120.0 + (travel - 120.0) * 2.0;
+    NSInteger characters = (NSInteger)(mapped / LLBScrubPointsPerCharacter);
+    return translation < 0 ? -characters : characters;
+}
+
+- (void)handleScrubPan:(UIPanGestureRecognizer *)recognizer {
+    switch (recognizer.state) {
+        case UIGestureRecognizerStateBegan:
+            // A popup may already be open if the touch started as a
+            // long press; the drag takes over from here.
+            [self dismissPopup];
+            self.scrubbing = YES;
+            self.scrubCharacters = 0;
+            LLBScrubBegin();
+            break;
+        case UIGestureRecognizerStateChanged: {
+            if (!self.scrubbing) {
+                return;
+            }
+            NSInteger characters = [self scrubCharactersForTranslation:[recognizer translationInView:self].x];
+            if (characters != self.scrubCharacters) {
+                self.scrubCharacters = characters;
+                LLBScrubMoveToOffset(characters);
+            }
+            break;
+        }
+        case UIGestureRecognizerStateEnded:
+        case UIGestureRecognizerStateCancelled:
+        case UIGestureRecognizerStateFailed:
+            self.scrubbing = NO;
+            LLBScrubEnd();
+            break;
+        default:
+            break;
+    }
+}
+
 - (void)handleLongPress:(UILongPressGestureRecognizer *)recognizer {
-    if (recognizer.state != UIGestureRecognizerStateBegan) {
+    switch (recognizer.state) {
+        case UIGestureRecognizerStateBegan: {
+            NSUInteger index = (NSUInteger)recognizer.view.tag;
+            if (index >= self.buttonConfigs.count) {
+                return;
+            }
+            NSArray *items = self.buttonConfigs[index][@"popup"];
+            if ([items isKindOfClass:[NSArray class]] && items.count > 0) {
+                [[[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium] impactOccurred];
+                [self showPopupWithItems:items anchoredTo:(UIButton *)recognizer.view];
+            }
+            break;
+        }
+        case UIGestureRecognizerStateChanged:
+            // Flick selection: the finger that opened the popup is
+            // sliding over the panel; highlight the item under it.
+            if (self.popupOverlay) {
+                [self highlightPopupButtonAtPoint:[recognizer locationInView:self.window]];
+            }
+            break;
+        case UIGestureRecognizerStateEnded: {
+            if (!self.popupOverlay) {
+                return;
+            }
+            CGPoint point = [recognizer locationInView:self.window];
+            UIButton *hit = [self popupButtonAtPoint:point];
+            if (hit) {
+                NSUInteger index = (NSUInteger)hit.tag;
+                NSDictionary *item = index < self.popupItems.count ? self.popupItems[index] : nil;
+                [self dismissPopup];
+                if (item) {
+                    [self performItem:item];
+                }
+            } else if ([self point:point isInView:self.popupAnchor]) {
+                // A plain hold with no slide: leave the popup open so
+                // an item can still be tapped.
+                [self highlightPopupButton:nil];
+            } else {
+                // Slid away and released elsewhere: flick cancel.
+                [self dismissPopup];
+            }
+            break;
+        }
+        case UIGestureRecognizerStateCancelled:
+        case UIGestureRecognizerStateFailed:
+            [self highlightPopupButton:nil];
+            break;
+        default:
+            break;
+    }
+}
+
+- (BOOL)point:(CGPoint)windowPoint isInView:(UIView *)view {
+    if (!view) {
+        return NO;
+    }
+    CGPoint local = [view convertPoint:windowPoint fromView:nil];
+    return [view pointInside:local withEvent:nil];
+}
+
+- (UIButton *)popupButtonAtPoint:(CGPoint)windowPoint {
+    for (UIButton *button in self.popupButtons) {
+        if ([self point:windowPoint isInView:button]) {
+            return button;
+        }
+    }
+    return nil;
+}
+
+- (void)highlightPopupButtonAtPoint:(CGPoint)windowPoint {
+    [self highlightPopupButton:[self popupButtonAtPoint:windowPoint]];
+}
+
+- (void)highlightPopupButton:(UIButton *)button {
+    if (self.popupHighlighted == button) {
         return;
     }
-    NSUInteger index = (NSUInteger)recognizer.view.tag;
-    if (index >= self.buttonConfigs.count) {
-        return;
-    }
-    NSArray *items = self.buttonConfigs[index][@"popup"];
-    if ([items isKindOfClass:[NSArray class]] && items.count > 0) {
-        [[[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium] impactOccurred];
-        [self showPopupWithItems:items anchoredTo:(UIButton *)recognizer.view];
+    self.popupHighlighted.highlighted = NO;
+    self.popupHighlighted = button;
+    self.popupHighlighted.highlighted = YES;
+    if (button) {
+        [[[UISelectionFeedbackGenerator alloc] init] selectionChanged];
     }
 }
 
@@ -421,6 +621,7 @@ static const CGFloat LLBMinimumDockHeight = 24.0;
         return;
     }
     self.popupItems = items;
+    self.popupAnchor = anchor;
 
     UIView *overlay = [[UIView alloc] initWithFrame:window.bounds];
     overlay.backgroundColor = [UIColor clearColor];
@@ -447,6 +648,7 @@ static const CGFloat LLBMinimumDockHeight = 24.0;
     }
     panel.frame = CGRectMake(x, y, panelWidth, panelHeight);
 
+    NSMutableArray<UIButton *> *popupButtons = [NSMutableArray array];
     for (NSUInteger i = 0; i < items.count; i++) {
         NSDictionary *item = items[i];
         UIButton *button = [self buttonForItem:item];
@@ -455,7 +657,9 @@ static const CGFloat LLBMinimumDockHeight = 24.0;
         button.tag = (NSInteger)i;
         [button addTarget:self action:@selector(handlePopupTap:) forControlEvents:UIControlEventTouchUpInside];
         [panel.contentView addSubview:button];
+        [popupButtons addObject:button];
     }
+    self.popupButtons = popupButtons;
 
     [overlay addSubview:panel];
     [window addSubview:overlay];
@@ -482,6 +686,9 @@ static const CGFloat LLBMinimumDockHeight = 24.0;
     [self.popupOverlay removeFromSuperview];
     self.popupOverlay = nil;
     self.popupItems = nil;
+    self.popupButtons = nil;
+    self.popupAnchor = nil;
+    self.popupHighlighted = nil;
 }
 
 @end

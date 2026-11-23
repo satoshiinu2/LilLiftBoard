@@ -74,6 +74,19 @@ insetting the groups from the strip's edges (0–40 pt, default 20 pt),
 plus an Icon Weight picker for the SF Symbol weight of the button
 icons (Ultralight–Black, default Light).
 
+The long-press popup also works like a flick keyboard: keep the
+finger down after the popup opens, slide it onto an item (it
+highlights under the finger) and release to run it. Releasing away
+from the panel cancels; a plain hold and release leaves the popup
+open so an item can still be tapped.
+
+Dragging horizontally anywhere on the bar scrubs the text cursor:
+once a touch has moved about 8 pt sideways it counts as a drag
+rather than a tap or long press, and the caret follows the drag
+distance (roughly one character per 10 pt, faster on long drags).
+The direction follows the drag, whichever button it started on.
+This can be turned off with the Drag to Move Cursor switch.
+
 Changes are saved to the `dockButtons` / `dockButtonsCenter` /
 `dockButtonsRight` preferences and picked up by the tweak immediately
 (Darwin notification); they apply the next time the keyboard is laid
@@ -85,8 +98,8 @@ Settings; its contents are not saved.
 
 ## Packages
 
-- `packages/com.satoshiinu.lilliftboard_1.2.0_iphoneos-arm64.deb` — rootless (Dopamine / palera1n rootless, `/var/jb`)
-- `packages/com.satoshiinu.lilliftboard_1.2.0_iphoneos-arm.deb` — rootful (palera1n rootful etc.)
+- `packages/com.satoshiinu.lilliftboard_1.3.0_iphoneos-arm64.deb` — rootless (Dopamine / palera1n rootless, `/var/jb`)
+- `packages/com.satoshiinu.lilliftboard_1.3.0_iphoneos-arm.deb` — rootful (palera1n rootful etc.)
 
 Target: iOS 15–16, arm64. Depends on mobilesubstrate (ElleKit) and
 preferenceloader.
@@ -125,4 +138,5 @@ entry).
 The dock buttons added in 1.1.0 were confirmed working on the same
 device on 2026-11-16 (buttons render in the lifted strip and copy /
 paste work in the settings Test field). The Icon Weight setting added
-in 1.2.0 was confirmed on the same device on 2026-11-23.
+in 1.2.0 was confirmed on the same device on 2026-11-23, as were the
+drag cursor scrub and the flick popup selection added in 1.3.0.

@@ -167,3 +167,27 @@ Preferences on tap. It was replaced with a PSLinkCell whose action
 presents an action sheet from the root list controller (the same
 action pattern the Buttons row already used), storing the picked
 index and posting the prefs-changed notification directly.
+
+Post-1.2.0: horizontal drags on the whole bar scrub the caret. A
+UIPanGestureRecognizer subclass withholds its touchesMoved from
+super until the touch has travelled 8 pt horizontally, so below the
+threshold the touch still belongs to the buttons' tap / long-press
+recognizers (whose allowableMovement is the same 8 pt); a
+vertically dominant travel fails the recognizer. Past the
+threshold the recognizer claims the touch (cancelling the button
+recognizers), any open popup is dismissed, and the caret is set
+from a drag-start anchor plus the accumulated character count
+(10 pt per character, travel past 120 pt counting double), applied
+through the UITextInput selection so it works in any app the tweak
+is injected into.
+
+The popup gained flick selection in the same round: the scrub
+recognizer's delegate refuses to begin while a popup is open, so
+the touch that long-pressed keeps belonging to the long-press
+recognizer, whose Changed events highlight the popup button under
+the finger and whose Ended either runs the highlighted item,
+leaves the popup open (finger released back on the anchor button —
+a plain hold), or dismisses it (released anywhere else). The
+long-press allowableMovement is generous (300 pt) for this: early
+sideways drags are still pre-empted because the scrub recognizer
+cancels the touch when it claims it, long before the press fires.

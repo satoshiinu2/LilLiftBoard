@@ -1,6 +1,6 @@
 Package: com.satoshiinu.lilliftboard
 Name: LilLiftBoard
-Version: 1.2.0
+Version: 1.3.0
 Architecture: iphoneos-arm
 Description: Raises the keyboard on Home-button iPhones so the bottom row no longer collides with iPhone X style home gestures. Adjustable from Settings.
  Source: https://github.com/satoshiinu2/LilLiftBoard
